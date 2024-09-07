@@ -100,20 +100,22 @@
         }
 
         button {
-            margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            background: none;  /* ボタンの装飾を解除 */
+            border: none;
+            color: white;
         }
 
         .roulette {
-            position: absolute;
-            top: 650px; /* 上部に移動 */
-            margin-bottom: 20px;
+            margin-top: 20px; /* Restartボタンの下に配置 */
             padding: 10px 20px;
             font-size: 18px;
-            background-color: white;
             cursor: pointer;
+            background: none;  /* ボタンの装飾を解除 */
+            border: none;
+            color: white;
         }
 
         #roulette-result {
@@ -124,8 +126,6 @@
 </head>
 <body>
 
-    <div class="roulette" id="roulette">ルーレットを回す</div>
-    <div id="roulette-result"></div> <!-- ルーレット結果の表示領域 -->
     <div class="scene">
         <div class="cube-container" id="cube-container">
             <div class="cube">
@@ -140,6 +140,9 @@
     </div>
 
     <button id="restart-btn">Restart</button>
+
+    <div class="roulette" id="roulette">ルーレットを回す</div>
+    <div id="roulette-result"></div> <!-- ルーレット結果の表示領域 -->
 
     <script>
         const container = document.getElementById('cube-container');
