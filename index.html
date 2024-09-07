@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Tic-Tac-Toe with Roulette</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #333;
+            color: white;
+            overflow: hidden;
+        }
+
+        .scene {
+            width: 320px;
+            height: 320px;
+            perspective: 1000px;
+        }
+
+        .cube-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-30deg) rotateY(-45deg);
+            transform-origin: 100px 50px 25px;
+            transition: transform 0.1s ease;
+            user-select: none;
+        }
+
+        .cube {
+            position: absolute;
+            width: 88px;
+            height: 88px;
+            border: none;
+            box-sizing: border-box;
+            transform-style: preserve-3d;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border: 2px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: white;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+
+        .cube-face.front  { transform: rotateY(  0deg) translateZ(44px); }
+        .cube-face.back   { transform: rotateY(180deg) translateZ(44px); }
+        .cube-face.left   { transform: rotateY(-90deg) translateZ(44px); }
+        .cube-face.right  { transform: rotateY( 90deg) translateZ(44px); }
+        .cube-face.top    { transform: rotateX( 90deg) translateZ(44px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(44px); }
+
+        .cube:nth-child(1)  { transform: translate3d(-104px, -104px, -104px); }
+        .cube:nth-child(2)  { transform: translate3d(0px, -104px, -104px); }
+        .cube:nth-child(3)  { transform: translate3d(104px, -104px, -104px); }
+        .cube:nth-child(4)  { transform: translate3d(-104px, 0px, -104px); }
+        .cube:nth-child(5)  { transform: translate3d(0px, 0px, -104px); }
+        .cube:nth-child(6)  { transform: translate3d(104px, 0px, -104px); }
+        .cube:nth-child(7)  { transform: translate3d(-104px, 104px, -104px); }
+        .cube:nth-child(8)  { transform: translate3d(0px, 104px, -104px); }
+        .cube:nth-child(9)  { transform: translate3d(104px, 104px, -104px); }
+
+        .cube:nth-child(10) { transform: translate3d(-104px, -104px, 0px); }
+        .cube:nth-child(11) { transform: translate3d(0px, -104px, 0px); }
+        .cube:nth-child(12) { transform: translate3d(104px, -104px, 0px); }
+        .cube:nth-child(13) { transform: translate3d(-104px, 0px, 0px); }
+        .cube:nth-child(14) { transform: translate3d(0px, 0px, 0px); }
+        .cube:nth-child(15) { transform: translate3d(104px, 0px, 0px); }
+        .cube:nth-child(16) { transform: translate3d(-104px, 104px, 0px); }
+        .cube:nth-child(17) { transform: translate3d(0px, 104px, 0px); }
+        .cube:nth-child(18) { transform: translate3d(104px, 104px, 0px); }
+
+        .cube:nth-child(19) { transform: translate3d(-104px, -104px, 104px); }
+        .cube:nth-child(20) { transform: translate3d(0px, -104px, 104px); }
+        .cube:nth-child(21) { transform: translate3d(104px, -104px, 104px); }
+        .cube:nth-child(22) { transform: translate3d(-104px, 0px, 104px); }
+        .cube:nth-child(23) { transform: translate3d(0px, 0px, 104px); }
+        .cube:nth-child(24) { transform: translate3d(104px, 0px, 104px); }
+        .cube:nth-child(25) { transform: translate3d(-104px, 104px, 104px); }
+        .cube:nth-child(26) { transform: translate3d(0px, 104px, 104px); }
+        .cube:nth-child(27) { transform: translate3d(104px, 104px, 104px); }
+
+        .cube:nth-child(14) .cube-face {
+            background-color: black !important;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .roulette {
+            position: absolute;
+            top: 10px; /* 上部に移動 */
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: yellow;
+            cursor: pointer;
+        }
+
+        #roulette-result {
+            margin-top: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="roulette" id="roulette">ルーレットを回す</div>
+    <div id="roulette-result"></div> <!-- ルーレット結果の表示領域 -->
+    <div class="scene">
+        <div class="cube-container" id="cube-container">
+            <div class="cube">
+                <div class="cube-face front"></div>
+                <div class="cube-face back"></div>
+                <div class="cube-face left"></div>
+                <div class="cube-face right"></div>
+                <div class="cube-face top"></div>
+                <div class="cube-face bottom"></div>
+            </div>
+        </div>
+    </div>
+
+    <button id="restart-btn">Restart</button>
+
+    <script>
+        const container = document.getElementById('cube-container');
+        const cubeTemplate = container.children[0];
+        const restartButton = document.getElementById('restart-btn');
+        const rouletteButton = document.getElementById('roulette');
+        const rouletteResult = document.getElementById('roulette-result'); // 結果を表示する要素
+
+        // 初期化
+        for (let i = 1; i < 27; i++) {
+            const newCube = cubeTemplate.cloneNode(true);
+            container.appendChild(newCube);
+        }
+
+        let isCircleTurn = true;
+        const cubes = document.querySelectorAll('.cube');
+        let gameState = Array(27).fill(null);
+
+        const corners = [0, 2, 6, 8, 18, 20, 24, 26]; // 角
+        const edges = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]; // 辺
+        const center = [4, 10, 12, 14, 16, 22]; // 真ん中
+        let allowedPositions = [];
+
+        cubes.forEach((cube, index) => {
+            cube.addEventListener('click', function () {
+                if (!allowedPositions.includes(index) || cube.classList.contains('clicked') || index === 13) return;
+
+                cube.classList.add('clicked');
+                const symbol = isCircleTurn ? '○' : '×';
+                gameState[index] = symbol;
+
+                const faces = cube.querySelectorAll('.cube-face');
+                faces.forEach(face => {
+                    face.textContent = symbol;
+                    face.style.backgroundColor = symbol === '○' ? 'red' : 'blue';
+                });
+
+                if (checkWin(symbol)) {
+                    setTimeout(() => {
+                        alert(`${symbol} wins!`);
+                        highlightWinningCubes(symbol); // 勝利時に背景を変更
+                    }, 100);
+                }
+
+                isCircleTurn = !isCircleTurn;
+            });
+        });
+
+        rouletteButton.addEventListener('click', spinRoulette);
+        restartButton.addEventListener('click', resetGame);
+
+        function spinRoulette() {
+            const options = ['角', '辺', '真ん中'];
+            const result = options[Math.floor(Math.random() * options.length)];
+            rouletteResult.textContent = `ルーレット結果: ${result}`; // 画面に結果を表示
+            let availablePositions;
+
+            if (result === '角') {
+                availablePositions = corners.filter(i => !gameState[i]);
+            } else if (result === '辺') {
+                availablePositions = edges.filter(i => !gameState[i]);
+            } else {
+                availablePositions = center.filter(i => !gameState[i]);
+            }
+
+            if (availablePositions.length === 0) {
+                alert(`${result} に空きがありません。再度ルーレットを回してください。`);
+                allowedPositions = [];
+            } else {
+                allowedPositions = availablePositions;
+            }
+        }
+
+        function resetGame() {
+            gameState = Array(27).fill(null);
+            isCircleTurn = true;
+            allowedPositions = [];
+            cubes.forEach(cube => {
+                cube.classList.remove('clicked');
+                const faces = cube.querySelectorAll('.cube-face');
+                faces.forEach(face => {
+                    face.textContent = '';
+                    face.style.backgroundColor = 'white';
+                });
+            });
+            rouletteResult.textContent = ''; // リセット時にルーレット結果をクリア
+        }
+
+        function checkWin(symbol) {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [9, 10, 11], [12, 13, 14], [15, 16, 17],
+                [18, 19, 20], [21, 22, 23], [24, 25, 26],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [9, 12, 15], [10, 13, 16], [11, 14, 17],
+                [18, 21, 24], [19, 22, 25], [20, 23, 26],
+                [0, 9, 18], [1, 10, 19], [2, 11, 20],
+                [3, 12, 21], [4, 13, 22], [5, 14, 23],
+                [6, 15, 24], [7, 16, 25], [8, 17, 26],
+                [0, 4, 8], [18, 22, 26],
+                [0, 14, 26], [2, 14, 24], [6, 14, 20], [8, 14, 18]
+            ];
+
+            return winningCombinations.some(combination =>
+                combination.every(index => gameState[index] === symbol)
+            );
+        }
+
+        // 勝利時に背景を変更する関数
+        function highlightWinningCubes(symbol) {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [9, 10, 11], [12, 13, 14], [15, 16, 17],
+                [18, 19, 20], [21, 22, 23], [24, 25, 26],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [9, 12, 15], [10, 13, 16], [11, 14, 17],
+                [18, 21, 24], [19, 22, 25], [20, 23, 26],
+                [0, 9, 18], [1, 10, 19], [2, 11, 20],
+                [3, 12, 21], [4, 13, 22], [5, 14, 23],
+                [6, 15, 24], [7, 16, 25], [8, 17, 26],
+                [0, 4, 8], [18, 22, 26],
+                [0, 14, 26], [2, 14, 24], [6, 14, 20], [8, 14, 18]
+            ];
+
+            winningCombinations.forEach(combination => {
+                if (combination.every(index => gameState[index] === symbol)) {
+                    combination.forEach(index => {
+                        const cube = cubes[index];
+                        cube.querySelectorAll('.cube-face').forEach(face => {
+                            face.style.backgroundColor = symbol === '○' ? 'red' : 'blue';
+                        });
+                    });
+                }
+            });
+        }
+
+        let isDragging = false;
+        let startX, startY;
+        let rotateX = -30;
+        let rotateY = -45;
+
+        document.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.pageX;
+            startY = e.pageY;
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.pageX - startX;
+                const deltaY = e.pageY - startY;
+                rotateX += deltaY * 0.2;
+                rotateY += deltaX * 0.2;
+                container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                startX = e.pageX;
+                startY = e.pageY;
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        document.addEventListener('touchstart', function(e) {
+            isDragging = true;
+            startX = e.touches[0].pageX;
+            startY = e.touches[0].pageY;
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (isDragging) {
+                const deltaX = e.touches[0].pageX - startX;
+                const deltaY = e.touches[0].pageY - startY;
+                rotateX += deltaY * 0.2;
+                rotateY += deltaX * 0.2;
+                container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                startX = e.touches[0].pageX;
+                startY = e.touches[0].pageY;
+            }
+        });
+
+        document.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+    </script>
+
+</body>
+</html>
