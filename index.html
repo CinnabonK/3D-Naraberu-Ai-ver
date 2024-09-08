@@ -233,7 +233,7 @@
 
         // AIの軽量化したミニマックスアルゴリズム（深さ制限あり）
         function aiMove() {
-            const depthLimit = 5; // 深さの上限を設定
+            const depthLimit = 4; // 深さの上限を設定
             const bestMove = minimax(gameState, true, -Infinity, Infinity, depthLimit);
             const index = bestMove.index;
 
